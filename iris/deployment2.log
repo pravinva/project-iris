@@ -1,0 +1,779 @@
+🚀 Deploying Unity Catalog + React UI to GCP
+==================================================
+Project: gcp-sandbox-field-eng
+Region: us-central1
+Service: iris-uc-fullstack
+
+📝 Checking GCloud authentication...
+🎯 Setting GCP project...
+WARNING: Your active project does not match the quota project in your local Application Default Credentials file. This might result in unexpected quota issues.
+
+To update your Application Default Credentials quota project, use the `gcloud auth application-default set-quota-project` command.
+Updated property [core/project].
+🔧 Enabling required GCP APIs...
+Operation "operations/acat.p2-83839625123-f87a7074-43fd-4dd1-bbd3-14b51a4bb22f" finished successfully.
+📦 Creating Artifact Registry repository...
+Repository already exists
+🔐 Configuring Docker authentication...
+WARNING: Your config file at [/Users/pravin.varma/.docker/config.json] contains these credential helper entries:
+
+{
+  "credHelpers": {
+    "us-central1-docker.pkg.dev": "gcloud"
+  }
+}
+Adding credentials for: us-central1-docker.pkg.dev
+gcloud credential helpers already registered correctly.
+🔨 Building Docker image with React UI: us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack:latest
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  66.61MB
+Step 1/45 : ARG HOME="/home/unitycatalog"
+Step 2/45 : ARG ALPINE_VERSION="3.20"
+Step 3/45 : FROM node:18-alpine as ui-builder
+ ---> 8d6421d663b4
+Step 4/45 : WORKDIR /app/ui
+ ---> Using cache
+ ---> d29e6542aa83
+Step 5/45 : COPY ui/package.json ui/yarn.lock ./
+ ---> Using cache
+ ---> d88ddf108902
+Step 6/45 : RUN yarn install --frozen-lockfile
+ ---> Using cache
+ ---> 36c342b2c157
+Step 7/45 : COPY ui/ ./
+ ---> Using cache
+ ---> 03d440bc0161
+Step 8/45 : RUN yarn build
+ ---> Using cache
+ ---> 14eb516a96ac
+Step 9/45 : FROM amazoncorretto:17-alpine${ALPINE_VERSION}-jdk as server-builder
+ ---> c045f0537bc8
+Step 10/45 : ARG HOME
+ ---> Using cache
+ ---> b9b4c0509b1e
+Step 11/45 : ENV HOME=$HOME
+ ---> Using cache
+ ---> c4ead4036b14
+Step 12/45 : WORKDIR $HOME
+ ---> Using cache
+ ---> a873a56b764c
+Step 13/45 : COPY dev/ ./dev/
+ ---> Using cache
+ ---> 4411631ab4e8
+Step 14/45 : COPY build/ ./build/
+ ---> Using cache
+ ---> 63b38ee3a5c3
+Step 15/45 : COPY project/ ./project/
+ ---> Using cache
+ ---> 0a07526ebe52
+Step 16/45 : COPY examples/ ./examples/
+ ---> Using cache
+ ---> 9b7bc3e71fe4
+Step 17/45 : COPY server/ ./server/
+ ---> Using cache
+ ---> a565412ed7cb
+Step 18/45 : COPY api/ ./api/
+ ---> Using cache
+ ---> 71389cecda8d
+Step 19/45 : COPY clients/ ./clients/
+ ---> Using cache
+ ---> 300446256b08
+Step 20/45 : COPY version.sbt build.sbt ./
+ ---> Using cache
+ ---> 082616bfb447
+Step 21/45 : RUN apk add --no-cache bash && ./build/sbt -info clean package
+ ---> Using cache
+ ---> 8696b14b9c82
+Step 22/45 : FROM alpine:${ALPINE_VERSION} as runtime
+ ---> a4f4213abb84
+Step 23/45 : ARG JAVA_HOME="/usr/lib/jvm/default-jvm"
+ ---> Using cache
+ ---> 4c8100d63b64
+Step 24/45 : ARG USER="unitycatalog"
+ ---> Using cache
+ ---> 4ade75d063cd
+Step 25/45 : ARG HOME
+ ---> Using cache
+ ---> 6fad1850b14f
+Step 26/45 : RUN apk add --no-cache bash nginx curl
+ ---> Running in d51fd0305a01
+fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/main/aarch64/APKINDEX.tar.gz
+fetch https://dl-cdn.alpinelinux.org/alpine/v3.20/community/aarch64/APKINDEX.tar.gz
+(1/16) Installing ncurses-terminfo-base (6.4_p20240420-r2)
+(2/16) Installing libncursesw (6.4_p20240420-r2)
+(3/16) Installing readline (8.2.10-r0)
+(4/16) Installing bash (5.2.26-r0)
+Executing bash-5.2.26-r0.post-install
+(5/16) Installing ca-certificates (20250911-r0)
+(6/16) Installing brotli-libs (1.1.0-r2)
+(7/16) Installing c-ares (1.33.1-r0)
+(8/16) Installing libunistring (1.2-r0)
+(9/16) Installing libidn2 (2.3.7-r0)
+(10/16) Installing nghttp2-libs (1.62.1-r0)
+(11/16) Installing libpsl (0.21.5-r1)
+(12/16) Installing zstd-libs (1.5.6-r0)
+(13/16) Installing libcurl (8.14.1-r2)
+(14/16) Installing curl (8.14.1-r2)
+(15/16) Installing pcre (8.45-r3)
+(16/16) Installing nginx (1.26.3-r0)
+Executing nginx-1.26.3-r0.pre-install
+Executing nginx-1.26.3-r0.post-install
+Executing busybox-1.36.1-r31.trigger
+Executing ca-certificates-20250911-r0.trigger
+OK: 20 MiB in 30 packages
+ ---> Removed intermediate container d51fd0305a01
+ ---> ede7e16b8198
+Step 27/45 : COPY --from=server-builder $JAVA_HOME $JAVA_HOME
+ ---> 5bcc5eb3dc5f
+Step 28/45 : ENV HOME=$HOME     JAVA_HOME=$JAVA_HOME     PATH="${JAVA_HOME}/bin:${PATH}"
+ ---> Running in def1015c54c3
+ ---> Removed intermediate container def1015c54c3
+ ---> eb9598c36f32
+Step 29/45 : COPY --from=server-builder $HOME/examples/ $HOME/examples/
+ ---> 8224ec2f5427
+Step 30/45 : COPY --from=server-builder $HOME/server/ $HOME/server/
+ ---> 28f92f8b8341
+Step 31/45 : COPY --from=server-builder $HOME/api/ $HOME/api/
+ ---> bf77f7f7be41
+Step 32/45 : COPY --from=server-builder $HOME/clients/ $HOME/clients/
+ ---> 2cd6730778f5
+Step 33/45 : COPY --from=server-builder $HOME/target/ $HOME/target/
+ ---> e524ad17d4e7
+Step 34/45 : COPY --from=server-builder $HOME/.cache/ $HOME/.cache/
+ ---> 4f28e2ba445c
+Step 35/45 : COPY --from=ui-builder /app/ui/build /usr/share/nginx/html
+ ---> e78836993322
+Step 36/45 : RUN addgroup -S $USER &&     adduser -S -G $USER $USER
+ ---> Running in 5ef5a211d8e6
+ ---> Removed intermediate container 5ef5a211d8e6
+ ---> 9e55080a2b10
+Step 37/45 : COPY bin/ $HOME/bin/
+ ---> fbdcb7d37ce9
+Step 38/45 : COPY etc/ $HOME/etc/
+ ---> 3e106d364b18
+Step 39/45 : RUN chmod -R 550 $HOME &&     mkdir -p $HOME/etc/ &&     chmod -R 770 $HOME/etc/ &&     chown -R $USER:$USER $HOME
+ ---> Running in 07b6416abb27
+ ---> Removed intermediate container 07b6416abb27
+ ---> 48d53ab98261
+Step 40/45 : RUN <<EOF
+ ---> Running in a4024edeafd6
+ ---> Removed intermediate container a4024edeafd6
+ ---> 34ba4e0ac785
+Step 41/45 : RUN cat > /start.sh << 'EOF'
+ ---> Running in f12bc479ded8
+ ---> Removed intermediate container f12bc479ded8
+ ---> dce7f210e245
+Step 42/45 : RUN chmod +x /start.sh
+ ---> Running in 40d82fc39e28
+ ---> Removed intermediate container 40d82fc39e28
+ ---> 4b8138fb07aa
+Step 43/45 : WORKDIR $HOME
+ ---> Running in eeb4c3286247
+ ---> Removed intermediate container eeb4c3286247
+ ---> 416f3853a38e
+Step 44/45 : EXPOSE 8080
+ ---> Running in ce6cd2df3b7b
+ ---> Removed intermediate container ce6cd2df3b7b
+ ---> 8d72b757c0dc
+Step 45/45 : CMD ["/start.sh"]
+ ---> Running in 038dd1ffe5da
+ ---> Removed intermediate container 038dd1ffe5da
+ ---> 4f9528d55dae
+Successfully built 4f9528d55dae
+Successfully tagged us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack:latest
+📤 Pushing image to Artifact Registry...
+The push refers to repository [us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack]
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+8797b5408752: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Waiting
+c65d03bc997b: Waiting
+0a210e3d0161: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+83b2d7e29698: Layer already exists
+c65d03bc997b: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+b985867a5d4c: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+b05feedf3266: Waiting
+3ef82a5a8cf0: Waiting
+41f1c54999ea: Waiting
+66ab294cd0ab: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+c65d03bc997b: Waiting
+c4e545fc1b36: Waiting
+1ecdeea2f72a: Waiting
+afa56dcd4563: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+c4e545fc1b36: Waiting
+79a219cb6303: Waiting
+0dc66dbd1ec7: Waiting
+41f1c54999ea: Waiting
+ab2681a2a3c3: Waiting
+d7c686c1b230: Waiting
+c65d03bc997b: Waiting
+41f1c54999ea: Waiting
+c65d03bc997b: Waiting
+41f1c54999ea: Waiting
+c65d03bc997b: Waiting
+41f1c54999ea: Waiting
+c65d03bc997b: Waiting
+c65d03bc997b: Waiting
+41f1c54999ea: Waiting
+41f1c54999ea: Waiting
+c65d03bc997b: Waiting
+c65d03bc997b: Waiting
+8797b5408752: Pushed
+41f1c54999ea: Waiting
+41f1c54999ea: Waiting
+c65d03bc997b: Waiting
+c65d03bc997b: Waiting
+b985867a5d4c: Pushed
+b05feedf3266: Pushed
+66ab294cd0ab: Pushed
+79a219cb6303: Pushed
+41f1c54999ea: Pushed
+1ecdeea2f72a: Pushed
+afa56dcd4563: Pushed
+0a210e3d0161: Pushed
+c4e545fc1b36: Pushed
+c65d03bc997b: Pushed
+ab2681a2a3c3: Pushed
+3ef82a5a8cf0: Pushed
+d7c686c1b230: Pushed
+0dc66dbd1ec7: Pushed
+latest: digest: sha256:4f9528d55dae71c0d2fa0126074b7a87cb302df39a53ce918ffb5fc7d83efc7d size: 3845
+☁️ Deploying to Cloud Run...
+ERROR: (gcloud.run.deploy) unrecognized arguments: --startup-cpu-boost (did you mean '--cpu-boost'?) 
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS

@@ -1,0 +1,352 @@
+{
+  "export_metadata": {
+    "source_system": "OSISoft PI AF",
+    "export_date": "2024-02-28T10:00:00Z",
+    "database": "RioTintoMiningOps",
+    "server": "PISERVER01",
+    "version": "2018 SP3"
+  },
+  "templates": [
+    {
+      "name": "MiningEquipmentTemplate",
+      "base_template": null,
+      "description": "Base template for mining equipment",
+      "categories": ["Equipment", "Mining"],
+      "attribute_templates": {
+        "SerialNumber": {
+          "type": "String",
+          "required": true,
+          "description": "Equipment serial number"
+        },
+        "Manufacturer": {
+          "type": "String",
+          "required": false,
+          "description": "Equipment manufacturer"
+        },
+        "InstallDate": {
+          "type": "DateTime",
+          "required": false,
+          "description": "Installation date"
+        },
+        "MaintenanceInterval": {
+          "type": "Int32",
+          "required": false,
+          "description": "Maintenance interval in days"
+        }
+      }
+    },
+    {
+      "name": "HaulTruckTemplate",
+      "base_template": "MiningEquipmentTemplate",
+      "description": "Template for haul trucks",
+      "categories": ["Equipment", "Mining", "Trucks"],
+      "attribute_templates": {
+        "PayloadCapacity": {
+          "type": "Double",
+          "required": true,
+          "description": "Maximum payload in tonnes"
+        },
+        "FuelCapacity": {
+          "type": "Double",
+          "required": false,
+          "description": "Fuel tank capacity in liters"
+        },
+        "TireSize": {
+          "type": "String",
+          "required": false,
+          "description": "Tire size specification"
+        },
+        "EngineHours": {
+          "type": "Double",
+          "required": false,
+          "description": "Total engine running hours"
+        }
+      }
+    },
+    {
+      "name": "ExcavatorTemplate",
+      "base_template": "MiningEquipmentTemplate",
+      "description": "Template for excavators",
+      "categories": ["Equipment", "Mining", "Excavators"],
+      "attribute_templates": {
+        "BucketCapacity": {
+          "type": "Double",
+          "required": true,
+          "description": "Bucket capacity in cubic meters"
+        },
+        "MaxDigDepth": {
+          "type": "Double",
+          "required": false,
+          "description": "Maximum digging depth in meters"
+        },
+        "OperatingWeight": {
+          "type": "Double",
+          "required": false,
+          "description": "Operating weight in tonnes"
+        }
+      }
+    },
+    {
+      "name": "CrusherTemplate",
+      "base_template": "MiningEquipmentTemplate",
+      "description": "Template for crushers",
+      "categories": ["Equipment", "Processing"],
+      "attribute_templates": {
+        "Throughput": {
+          "type": "Double",
+          "required": true,
+          "description": "Maximum throughput in tonnes per hour"
+        },
+        "InputSize": {
+          "type": "Double",
+          "required": false,
+          "description": "Maximum input size in mm"
+        },
+        "OutputSize": {
+          "type": "Double",
+          "required": false,
+          "description": "Output size in mm"
+        },
+        "PowerRating": {
+          "type": "Double",
+          "required": true,
+          "description": "Power rating in kW"
+        }
+      }
+    },
+    {
+      "name": "ConveyorTemplate",
+      "base_template": "MiningEquipmentTemplate",
+      "description": "Template for conveyor systems",
+      "categories": ["Equipment", "Material Handling"],
+      "attribute_templates": {
+        "BeltWidth": {
+          "type": "Double",
+          "required": true,
+          "description": "Belt width in meters"
+        },
+        "BeltSpeed": {
+          "type": "Double",
+          "required": true,
+          "description": "Belt speed in m/s"
+        },
+        "Length": {
+          "type": "Double",
+          "required": true,
+          "description": "Conveyor length in meters"
+        },
+        "Capacity": {
+          "type": "Double",
+          "required": false,
+          "description": "Capacity in tonnes per hour"
+        }
+      }
+    }
+  ],
+  "elements": [
+    {
+      "name": "RioTintoMining",
+      "path": "\\\\PISERVER01\\RioTintoMining",
+      "template": null,
+      "parent_path": null,
+      "description": "Rio Tinto Mining Operations",
+      "categories": ["Enterprise"],
+      "attributes": {
+        "Company": "Rio Tinto",
+        "Industry": "Mining",
+        "HeadOffice": "Melbourne, Australia"
+      }
+    },
+    {
+      "name": "PilbaraOperations",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining",
+      "description": "Pilbara Iron Ore Operations",
+      "categories": ["Site"],
+      "attributes": {
+        "Location": "Western Australia",
+        "Area": "Pilbara",
+        "ProductionCapacity": "330000000",
+        "NumberOfMines": "16"
+      }
+    },
+    {
+      "name": "TomPriceMine",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations",
+      "description": "Tom Price Iron Ore Mine",
+      "categories": ["Mine"],
+      "attributes": {
+        "MineType": "Open Pit",
+        "StartYear": "1966",
+        "OreGrade": "62% Fe",
+        "AnnualProduction": "35000000"
+      }
+    },
+    {
+      "name": "MiningFleet",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine",
+      "description": "Mining Equipment Fleet",
+      "categories": ["Area"],
+      "attributes": {
+        "FleetSize": "85",
+        "AutonomousUnits": "45"
+      }
+    },
+    {
+      "name": "HaulTruck_AHS001",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet\\HaulTruck_AHS001",
+      "template": "HaulTruckTemplate",
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet",
+      "description": "Autonomous Haul Truck 001",
+      "categories": ["Equipment", "Autonomous"],
+      "attributes": {
+        "SerialNumber": "CAT-930E-2024001",
+        "Manufacturer": "Caterpillar",
+        "InstallDate": "2024-01-15T00:00:00Z",
+        "MaintenanceInterval": "250",
+        "PayloadCapacity": "290",
+        "FuelCapacity": "4500",
+        "TireSize": "59/80R63",
+        "EngineHours": "1250.5",
+        "Status": "Operating",
+        "AutonomousMode": "true"
+      }
+    },
+    {
+      "name": "HaulTruck_AHS002",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet\\HaulTruck_AHS002",
+      "template": "HaulTruckTemplate",
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet",
+      "description": "Autonomous Haul Truck 002",
+      "categories": ["Equipment", "Autonomous"],
+      "attributes": {
+        "SerialNumber": "CAT-930E-2024002",
+        "Manufacturer": "Caterpillar",
+        "InstallDate": "2024-01-20T00:00:00Z",
+        "MaintenanceInterval": "250",
+        "PayloadCapacity": "290",
+        "FuelCapacity": "4500",
+        "TireSize": "59/80R63",
+        "EngineHours": "980.3",
+        "Status": "Operating",
+        "AutonomousMode": "true"
+      }
+    },
+    {
+      "name": "Excavator_EX001",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet\\Excavator_EX001",
+      "template": "ExcavatorTemplate",
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\MiningFleet",
+      "description": "Hydraulic Excavator 001",
+      "categories": ["Equipment", "Excavator"],
+      "attributes": {
+        "SerialNumber": "KOM-PC8000-2024001",
+        "Manufacturer": "Komatsu",
+        "InstallDate": "2023-11-10T00:00:00Z",
+        "MaintenanceInterval": "500",
+        "BucketCapacity": "42",
+        "MaxDigDepth": "8.2",
+        "OperatingWeight": "710",
+        "Status": "Operating"
+      }
+    },
+    {
+      "name": "ProcessingPlant",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\ProcessingPlant",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine",
+      "description": "Ore Processing Plant",
+      "categories": ["Area", "Processing"],
+      "attributes": {
+        "PlantCapacity": "40000000",
+        "CrusherCount": "3",
+        "ConveyorLength": "15000"
+      }
+    },
+    {
+      "name": "PrimaryCrusher01",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\ProcessingPlant\\PrimaryCrusher01",
+      "template": "CrusherTemplate",
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\ProcessingPlant",
+      "description": "Primary Gyratory Crusher",
+      "categories": ["Equipment", "Crusher"],
+      "attributes": {
+        "SerialNumber": "METSO-MK2-2023001",
+        "Manufacturer": "Metso",
+        "InstallDate": "2023-06-15T00:00:00Z",
+        "MaintenanceInterval": "180",
+        "Throughput": "5000",
+        "InputSize": "1500",
+        "OutputSize": "250",
+        "PowerRating": "1500",
+        "Status": "Operating"
+      }
+    },
+    {
+      "name": "MainConveyor01",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\ProcessingPlant\\MainConveyor01",
+      "template": "ConveyorTemplate",
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\TomPriceMine\\ProcessingPlant",
+      "description": "Main Overland Conveyor",
+      "categories": ["Equipment", "Conveyor"],
+      "attributes": {
+        "SerialNumber": "SAND-OLC-2023001",
+        "Manufacturer": "Sandvik",
+        "InstallDate": "2023-03-20T00:00:00Z",
+        "MaintenanceInterval": "90",
+        "BeltWidth": "2.4",
+        "BeltSpeed": "5.5",
+        "Length": "8500",
+        "Capacity": "6000",
+        "Status": "Operating"
+      }
+    },
+    {
+      "name": "HopeDowns4",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\HopeDowns4",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations",
+      "description": "Hope Downs 4 Iron Ore Mine",
+      "categories": ["Mine"],
+      "attributes": {
+        "MineType": "Open Pit",
+        "StartYear": "2013",
+        "OreGrade": "61% Fe",
+        "AnnualProduction": "15000000"
+      }
+    },
+    {
+      "name": "RailOperations",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\RailOperations",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations",
+      "description": "Autonomous Rail Network",
+      "categories": ["Infrastructure"],
+      "attributes": {
+        "NetworkLength": "1700",
+        "LocomotiveCount": "200",
+        "AutonomousTrains": "true",
+        "DailyCapacity": "1000000"
+      }
+    },
+    {
+      "name": "PortOperations",
+      "path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations\\PortOperations",
+      "template": null,
+      "parent_path": "\\\\PISERVER01\\RioTintoMining\\PilbaraOperations",
+      "description": "Port Facilities",
+      "categories": ["Infrastructure", "Port"],
+      "attributes": {
+        "Terminals": "4",
+        "Location": "Cape Lambert, Dampier",
+        "ShipLoadingRate": "15000",
+        "AnnualCapacity": "360000000"
+      }
+    }
+  ]
+}

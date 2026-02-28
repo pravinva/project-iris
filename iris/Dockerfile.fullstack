@@ -1,0 +1,147 @@
+ARG HOME="/home/unitycatalog"
+ARG ALPINE_VERSION="3.20"
+
+# Stage 1: Build React UI
+FROM node:18-alpine as ui-builder
+
+WORKDIR /app/ui
+
+# Copy UI package files
+COPY ui/package.json ui/yarn.lock ./
+
+# Install dependencies
+RUN yarn install --frozen-lockfile
+
+# Copy UI source
+COPY ui/ ./
+
+# Build the UI
+RUN yarn build
+
+# Stage 2: Build Java Server
+FROM amazoncorretto:17-alpine${ALPINE_VERSION}-jdk as server-builder
+
+ARG HOME
+ENV HOME=$HOME
+
+WORKDIR $HOME
+
+# Copy directories for server build
+COPY dev/ ./dev/
+COPY build/ ./build/
+COPY project/ ./project/
+COPY examples/ ./examples/
+COPY server/ ./server/
+COPY api/ ./api/
+COPY clients/ ./clients/
+COPY version.sbt build.sbt ./
+
+RUN apk add --no-cache bash && ./build/sbt -info clean package
+
+# Stage 3: Runtime with nginx + Java server
+FROM alpine:${ALPINE_VERSION} as runtime
+
+ARG JAVA_HOME="/usr/lib/jvm/default-jvm"
+ARG USER="unitycatalog"
+ARG HOME
+
+# Install nginx, Java, and curl
+RUN apk add --no-cache bash nginx curl
+
+# Copy Java from server builder
+COPY --from=server-builder $JAVA_HOME $JAVA_HOME
+
+ENV HOME=$HOME \
+    JAVA_HOME=$JAVA_HOME \
+    PATH="${JAVA_HOME}/bin:${PATH}"
+
+# Copy server artifacts
+COPY --from=server-builder $HOME/examples/ $HOME/examples/
+COPY --from=server-builder $HOME/server/ $HOME/server/
+COPY --from=server-builder $HOME/api/ $HOME/api/
+COPY --from=server-builder $HOME/clients/ $HOME/clients/
+COPY --from=server-builder $HOME/target/ $HOME/target/
+COPY --from=server-builder $HOME/.cache/ $HOME/.cache/
+
+# Copy UI build to nginx html directory
+COPY --from=ui-builder /app/ui/build /usr/share/nginx/html
+
+# Create unitycatalog user first
+RUN addgroup -S $USER && \
+    adduser -S -G $USER $USER
+
+# Copy remaining directories
+COPY bin/ $HOME/bin/
+COPY etc/ $HOME/etc/
+
+# Set permissions after copying
+RUN chmod -R 550 $HOME && \
+    mkdir -p $HOME/etc/ && \
+    chmod -R 770 $HOME/etc/ && \
+    chown -R $USER:$USER $HOME
+
+# Configure nginx
+RUN <<EOF
+mkdir -p /run/nginx
+cat > /etc/nginx/nginx.conf << 'NGINX_CONF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log warn;
+pid /run/nginx/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    include /etc/nginx/mime.types;
+    default_type application/octet-stream;
+
+    log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                    '$status $body_bytes_sent "$http_referer" '
+                    '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log /var/log/nginx/access.log main;
+
+    sendfile on;
+    keepalive_timeout 65;
+
+    server {
+        listen 8080;
+        server_name _;
+
+        # Serve React UI
+        location / {
+            root /usr/share/nginx/html;
+            try_files \$uri \$uri/ /index.html;
+        }
+
+        # Proxy API requests to UC server
+        location /api/ {
+            proxy_pass http://localhost:8081;
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+        }
+
+        # Health check endpoint
+        location /health {
+            access_log off;
+            return 200 "healthy\n";
+            add_header Content-Type text/plain;
+        }
+    }
+}
+NGINX_CONF
+EOF
+
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+WORKDIR $HOME
+
+EXPOSE 8080
+
+CMD ["/start.sh"]

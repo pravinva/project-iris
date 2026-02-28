@@ -1,0 +1,20 @@
+{
+  "catalog_name": "unity",
+  "schema_name": "default",
+  "name": "Motor",
+  "comment": "Industrial motor asset type",
+  "properties": [
+    {
+      "name": "rated_power",
+      "data_type": "FLOAT",
+      "is_required": true,
+      "comment": "Rated power in kW"
+    },
+    {
+      "name": "manufacturer",
+      "data_type": "STRING",
+      "is_required": false,
+      "comment": "Manufacturer name"
+    }
+  ]
+}

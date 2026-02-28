@@ -1,0 +1,236 @@
+    # Asset-related schemas for OT extension
+    AssetPropertyDef:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The name of the asset property
+        data_type:
+          type: string
+          description: The data type of the property (e.g., DOUBLE, STRING, INTEGER)
+        unit:
+          type: string
+          description: The unit of measurement for the property
+        description:
+          type: string
+          description: Description of the property
+      required:
+        - name
+        - data_type
+
+    AssetTypeInfo:
+      type: object
+      properties:
+        catalog_name:
+          type: string
+          description: The name of the catalog where the asset type is
+        schema_name:
+          type: string
+          description: The name of the schema where the asset type is
+        name:
+          type: string
+          description: The name of the asset type
+        full_name:
+          type: string
+          description: Full name of the asset type (catalog.schema.name)
+        comment:
+          type: string
+          description: The comment attached to the asset type
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetPropertyDef'
+          description: List of property definitions for this asset type
+        created_at:
+          type: integer
+          format: int64
+          description: Time at which this asset type was created, in epoch milliseconds
+        created_by:
+          type: string
+          description: The identifier of the user who created the asset type
+        updated_at:
+          type: integer
+          format: int64
+          description: Time at which this asset type was last modified, in epoch milliseconds
+        updated_by:
+          type: string
+          description: The identifier of the user who updated the asset type last time
+        owner:
+          type: string
+          description: The identifier of the user who owns the asset type
+      required:
+        - catalog_name
+        - schema_name
+        - name
+        - full_name
+
+    CreateAssetType:
+      type: object
+      properties:
+        catalog_name:
+          type: string
+          description: The name of the catalog where the asset type will be created
+        schema_name:
+          type: string
+          description: The name of the schema where the asset type will be created
+        name:
+          type: string
+          description: The name of the asset type
+        comment:
+          type: string
+          description: The comment attached to the asset type
+        properties:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetPropertyDef'
+          description: List of property definitions for this asset type
+      required:
+        - catalog_name
+        - schema_name
+        - name
+
+    AssetInfo:
+      type: object
+      properties:
+        catalog_name:
+          type: string
+          description: The name of the catalog where the asset is
+        schema_name:
+          type: string
+          description: The name of the schema where the asset is
+        name:
+          type: string
+          description: The name of the asset
+        full_name:
+          type: string
+          description: Full name of the asset (catalog.schema.name)
+        asset_type_full_name:
+          type: string
+          description: Full name of the asset type this asset belongs to
+        parent_asset_full_name:
+          type: string
+          description: Full name of the parent asset (if this is a child asset)
+        comment:
+          type: string
+          description: The comment attached to the asset
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value properties of the asset
+        property_bindings:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetPropertyBinding'
+          description: List of property bindings for this asset
+        created_at:
+          type: integer
+          format: int64
+          description: Time at which this asset was created, in epoch milliseconds
+        created_by:
+          type: string
+          description: The identifier of the user who created the asset
+        updated_at:
+          type: integer
+          format: int64
+          description: Time at which this asset was last modified, in epoch milliseconds
+        updated_by:
+          type: string
+          description: The identifier of the user who updated the asset last time
+        owner:
+          type: string
+          description: The identifier of the user who owns the asset
+      required:
+        - catalog_name
+        - schema_name
+        - name
+        - full_name
+        - asset_type_full_name
+
+    CreateAsset:
+      type: object
+      properties:
+        catalog_name:
+          type: string
+          description: The name of the catalog where the asset will be created
+        schema_name:
+          type: string
+          description: The name of the schema where the asset will be created
+        name:
+          type: string
+          description: The name of the asset
+        asset_type_full_name:
+          type: string
+          description: Full name of the asset type this asset belongs to
+        parent_asset_full_name:
+          type: string
+          description: Full name of the parent asset (if this is a child asset)
+        comment:
+          type: string
+          description: The comment attached to the asset
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+          description: Key-value properties of the asset
+      required:
+        - catalog_name
+        - schema_name
+        - name
+        - asset_type_full_name
+
+    AssetPropertyBinding:
+      type: object
+      properties:
+        property_name:
+          type: string
+          description: The name of the property being bound
+        binding_type:
+          type: string
+          enum: [TABLE_COLUMN, VOLUME_FILE, FUNCTION_OUTPUT, METRIC_VALUE]
+          description: The type of binding
+        table_full_name:
+          type: string
+          description: Full name of the table (for TABLE_COLUMN binding)
+        column_name:
+          type: string
+          description: Column name in the table (for TABLE_COLUMN binding)
+        volume_full_name:
+          type: string
+          description: Full name of the volume (for VOLUME_FILE binding)
+        file_path:
+          type: string
+          description: Path to the file in the volume (for VOLUME_FILE binding)
+        function_full_name:
+          type: string
+          description: Full name of the function (for FUNCTION_OUTPUT binding)
+        metric_name:
+          type: string
+          description: Name of the metric (for METRIC_VALUE binding)
+      required:
+        - property_name
+        - binding_type
+
+    AssetList:
+      type: object
+      properties:
+        assets:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetInfo'
+          description: List of assets
+        next_page_token:
+          type: string
+          description: Opaque token to retrieve the next page of results
+
+    AssetTypeList:
+      type: object
+      properties:
+        asset_types:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetTypeInfo'
+          description: List of asset types
+        next_page_token:
+          type: string
+          description: Opaque token to retrieve the next page of results

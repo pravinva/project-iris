@@ -1,0 +1,234 @@
+  /unity-catalog/asset-types:
+    get:
+      summary: List asset types
+      description: Gets an array of asset types in the given parent catalog and schema.
+      operationId: list-asset-types
+      parameters:
+        - name: catalog_name
+          in: query
+          description: The name of the catalog
+          required: true
+          schema:
+            type: string
+        - name: schema_name
+          in: query
+          description: The name of the schema
+          required: true
+          schema:
+            type: string
+        - name: max_results
+          in: query
+          description: Maximum number of asset types to return
+          schema:
+            type: integer
+            format: int32
+        - name: page_token
+          in: query
+          description: Opaque pagination token to go to next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The asset types list was successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetTypeList'
+      tags:
+        - Assets
+    post:
+      summary: Create an asset type
+      description: Creates a new asset type.
+      operationId: create-asset-type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAssetType'
+      responses:
+        '201':
+          description: The asset type was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetTypeInfo'
+      tags:
+        - Assets
+
+  /unity-catalog/asset-types/{full_name}:
+    get:
+      summary: Get an asset type
+      description: Gets an asset type by its full name
+      operationId: get-asset-type
+      parameters:
+        - name: full_name
+          in: path
+          description: Full name of the asset type
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The asset type was successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetTypeInfo'
+      tags:
+        - Assets
+    delete:
+      summary: Delete an asset type
+      description: Deletes an asset type by its full name
+      operationId: delete-asset-type
+      parameters:
+        - name: full_name
+          in: path
+          description: Full name of the asset type
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: The asset type was successfully deleted
+      tags:
+        - Assets
+
+  /unity-catalog/assets:
+    get:
+      summary: List assets
+      description: Gets an array of assets
+      operationId: list-assets
+      parameters:
+        - name: catalog_name
+          in: query
+          description: The name of the catalog
+          required: true
+          schema:
+            type: string
+        - name: schema_name
+          in: query
+          description: The name of the schema
+          required: true
+          schema:
+            type: string
+        - name: asset_type_full_name
+          in: query
+          description: Filter by asset type full name
+          schema:
+            type: string
+        - name: parent_asset_full_name
+          in: query
+          description: Filter by parent asset full name (for children)
+          schema:
+            type: string
+        - name: max_results
+          in: query
+          description: Maximum number of assets to return
+          schema:
+            type: integer
+            format: int32
+        - name: page_token
+          in: query
+          description: Opaque pagination token to go to next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The assets list was successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+      tags:
+        - Assets
+    post:
+      summary: Create an asset
+      description: Creates a new asset
+      operationId: create-asset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAsset'
+      responses:
+        '201':
+          description: The asset was successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetInfo'
+      tags:
+        - Assets
+
+  /unity-catalog/assets/{full_name}:
+    get:
+      summary: Get an asset
+      description: Gets an asset by its full name
+      operationId: get-asset
+      parameters:
+        - name: full_name
+          in: path
+          description: Full name of the asset
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The asset was successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetInfo'
+      tags:
+        - Assets
+    delete:
+      summary: Delete an asset
+      description: Deletes an asset by its full name
+      operationId: delete-asset
+      parameters:
+        - name: full_name
+          in: path
+          description: Full name of the asset
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: The asset was successfully deleted
+      tags:
+        - Assets
+
+  /unity-catalog/assets/{full_name}/children:
+    get:
+      summary: List child assets
+      description: Lists all child assets of a given parent asset
+      operationId: list-child-assets
+      parameters:
+        - name: full_name
+          in: path
+          description: Full name of the parent asset
+          required: true
+          schema:
+            type: string
+        - name: max_results
+          in: query
+          description: Maximum number of child assets to return
+          schema:
+            type: integer
+            format: int32
+        - name: page_token
+          in: query
+          description: Opaque pagination token to go to next page
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The child assets list was successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetList'
+      tags:
+        - Assets

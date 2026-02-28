@@ -1,0 +1,695 @@
+🚀 Deploying Unity Catalog + React UI to GCP
+==================================================
+Project: gcp-sandbox-field-eng
+Region: us-central1
+Service: iris-uc-fullstack
+
+📝 Checking GCloud authentication...
+🎯 Setting GCP project...
+WARNING: Your active project does not match the quota project in your local Application Default Credentials file. This might result in unexpected quota issues.
+
+To update your Application Default Credentials quota project, use the `gcloud auth application-default set-quota-project` command.
+Updated property [core/project].
+🔧 Enabling required GCP APIs...
+Operation "operations/acat.p2-83839625123-553db983-842a-4a98-993f-c2cfe6acc976" finished successfully.
+📦 Creating Artifact Registry repository...
+Repository already exists
+🔐 Configuring Docker authentication...
+WARNING: Your config file at [/Users/pravin.varma/.docker/config.json] contains these credential helper entries:
+
+{
+  "credHelpers": {
+    "us-central1-docker.pkg.dev": "gcloud"
+  }
+}
+Adding credentials for: us-central1-docker.pkg.dev
+gcloud credential helpers already registered correctly.
+🔨 Building Docker image with React UI: us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack:latest
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon   66.6MB
+Step 1/45 : ARG HOME="/home/unitycatalog"
+Step 2/45 : ARG ALPINE_VERSION="3.20"
+Step 3/45 : FROM node:18-alpine as ui-builder
+ ---> 8d6421d663b4
+Step 4/45 : WORKDIR /app/ui
+ ---> Using cache
+ ---> d29e6542aa83
+Step 5/45 : COPY ui/package.json ui/yarn.lock ./
+ ---> Using cache
+ ---> d88ddf108902
+Step 6/45 : RUN yarn install --frozen-lockfile
+ ---> Using cache
+ ---> 36c342b2c157
+Step 7/45 : COPY ui/ ./
+ ---> Using cache
+ ---> 03d440bc0161
+Step 8/45 : RUN yarn build
+ ---> Using cache
+ ---> 14eb516a96ac
+Step 9/45 : FROM amazoncorretto:17-alpine${ALPINE_VERSION}-jdk as server-builder
+ ---> c045f0537bc8
+Step 10/45 : ARG HOME
+ ---> Using cache
+ ---> b9b4c0509b1e
+Step 11/45 : ENV HOME=$HOME
+ ---> Using cache
+ ---> c4ead4036b14
+Step 12/45 : WORKDIR $HOME
+ ---> Using cache
+ ---> a873a56b764c
+Step 13/45 : COPY dev/ ./dev/
+ ---> Using cache
+ ---> 4411631ab4e8
+Step 14/45 : COPY build/ ./build/
+ ---> Using cache
+ ---> 63b38ee3a5c3
+Step 15/45 : COPY project/ ./project/
+ ---> Using cache
+ ---> 0a07526ebe52
+Step 16/45 : COPY examples/ ./examples/
+ ---> Using cache
+ ---> 9b7bc3e71fe4
+Step 17/45 : COPY server/ ./server/
+ ---> Using cache
+ ---> a565412ed7cb
+Step 18/45 : COPY api/ ./api/
+ ---> Using cache
+ ---> 71389cecda8d
+Step 19/45 : COPY clients/ ./clients/
+ ---> Using cache
+ ---> 300446256b08
+Step 20/45 : COPY version.sbt build.sbt ./
+ ---> Using cache
+ ---> 082616bfb447
+Step 21/45 : RUN apk add --no-cache bash && ./build/sbt -info clean package
+ ---> Using cache
+ ---> 8696b14b9c82
+Step 22/45 : FROM alpine:${ALPINE_VERSION} as runtime
+ ---> a4f4213abb84
+Step 23/45 : ARG JAVA_HOME="/usr/lib/jvm/default-jvm"
+ ---> Using cache
+ ---> 4c8100d63b64
+Step 24/45 : ARG USER="unitycatalog"
+ ---> Using cache
+ ---> 4ade75d063cd
+Step 25/45 : ARG HOME
+ ---> Using cache
+ ---> 6fad1850b14f
+Step 26/45 : RUN apk add --no-cache bash nginx
+ ---> Using cache
+ ---> 585216ea02ee
+Step 27/45 : COPY --from=server-builder $JAVA_HOME $JAVA_HOME
+ ---> Using cache
+ ---> 2480de03c6a0
+Step 28/45 : ENV HOME=$HOME     JAVA_HOME=$JAVA_HOME     PATH="${JAVA_HOME}/bin:${PATH}"
+ ---> Using cache
+ ---> 4b0c076cad11
+Step 29/45 : COPY --from=server-builder $HOME/examples/ $HOME/examples/
+ ---> Using cache
+ ---> 570def0fa7ff
+Step 30/45 : COPY --from=server-builder $HOME/server/ $HOME/server/
+ ---> Using cache
+ ---> 71e692f162f8
+Step 31/45 : COPY --from=server-builder $HOME/api/ $HOME/api/
+ ---> Using cache
+ ---> 67865e34fb50
+Step 32/45 : COPY --from=server-builder $HOME/clients/ $HOME/clients/
+ ---> Using cache
+ ---> d8e0eeb242a2
+Step 33/45 : COPY --from=server-builder $HOME/target/ $HOME/target/
+ ---> Using cache
+ ---> 5994e2131b96
+Step 34/45 : COPY --from=server-builder $HOME/.cache/ $HOME/.cache/
+ ---> Using cache
+ ---> c5999e7d2f25
+Step 35/45 : COPY --from=ui-builder /app/ui/build /usr/share/nginx/html
+ ---> Using cache
+ ---> 022bd02c7796
+Step 36/45 : RUN addgroup -S $USER &&     adduser -S -G $USER $USER
+ ---> Running in b3f64309a6be
+ ---> Removed intermediate container b3f64309a6be
+ ---> ba647fbe3a3d
+Step 37/45 : COPY bin/ $HOME/bin/
+ ---> ae4afa9d64b6
+Step 38/45 : COPY etc/ $HOME/etc/
+ ---> b311470b25de
+Step 39/45 : RUN chmod -R 550 $HOME &&     mkdir -p $HOME/etc/ &&     chmod -R 770 $HOME/etc/ &&     chown -R $USER:$USER $HOME
+ ---> Running in 8ee7bdc13654
+ ---> Removed intermediate container 8ee7bdc13654
+ ---> fa6dea801240
+Step 40/45 : RUN <<EOF
+ ---> Running in 1064db841e20
+ ---> Removed intermediate container 1064db841e20
+ ---> 260f55d98426
+Step 41/45 : RUN cat > /start.sh << 'STARTUP_SCRIPT'
+ ---> Running in 9b4dfd3bb401
+ ---> Removed intermediate container 9b4dfd3bb401
+ ---> b596c8df2830
+Step 42/45 : RUN chmod +x /start.sh
+ ---> Running in 7834d2d7d50f
+ ---> Removed intermediate container 7834d2d7d50f
+ ---> c1e2ec5e468e
+Step 43/45 : WORKDIR $HOME
+ ---> Running in 399b738d91ad
+ ---> Removed intermediate container 399b738d91ad
+ ---> 829df188c886
+Step 44/45 : EXPOSE 8080
+ ---> Running in 8a48bbeb07ef
+ ---> Removed intermediate container 8a48bbeb07ef
+ ---> 1ef310d50339
+Step 45/45 : CMD ["/start.sh"]
+ ---> Running in ac562b3dfa31
+ ---> Removed intermediate container ac562b3dfa31
+ ---> 886634738b44
+Successfully built 886634738b44
+Successfully tagged us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack:latest
+📤 Pushing image to Artifact Registry...
+The push refers to repository [us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-unity-catalog-fullstack]
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+d37822b463b9: Waiting
+428a50cce74f: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+bb55f29dfac2: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+f39b6a3fda37: Waiting
+765d9213ad91: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+83b2d7e29698: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+ba336df4ad9d: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+c90461254412: Waiting
+2f37519ce163: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+090bc621b551: Waiting
+7b155995a7ac: Waiting
+b775d94630c6: Waiting
+5ce7586f6801: Waiting
+c90461254412: Waiting
+d321022a1296: Waiting
+8cea2d172fc9: Waiting
+154a38574cfd: Waiting
+8cea2d172fc9: Waiting
+c90461254412: Waiting
+8cea2d172fc9: Waiting
+c90461254412: Waiting
+428a50cce74f: Pushed
+c90461254412: Waiting
+c90461254412: Waiting
+c90461254412: Waiting
+d37822b463b9: Pushed
+f39b6a3fda37: Pushed
+bb55f29dfac2: Pushed
+765d9213ad91: Pushed
+b775d94630c6: Pushed
+8cea2d172fc9: Pushed
+c90461254412: Pushed
+d321022a1296: Pushed
+090bc621b551: Pushed
+7b155995a7ac: Pushed
+2f37519ce163: Pushed
+83b2d7e29698: Pushed
+ba336df4ad9d: Pushed
+5ce7586f6801: Pushed
+154a38574cfd: Pushed
+latest: digest: sha256:886634738b44cf3c8e521c723414df0be6e8c51af9bbf3b5896bf9940f7bf6b9 size: 3845
+☁️ Deploying to Cloud Run...
+Deploying container to Cloud Run service [[1miris-uc-fullstack[m] in project [[1mgcp-sandbox-field-eng[m] region [[1mus-central1[m]
+Deploying new service...
+Setting IAM Policy...............................done
+Creating Revision.............................................................................................................................................................................................................................................................................................................................failed
+Deployment failed
+ERROR: (gcloud.run.deploy) The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.
+
+Logs URL: https://console.cloud.google.com/logs/viewer?project=gcp-sandbox-field-eng&resource=cloud_run_revision/service_name/iris-uc-fullstack/revision_name/iris-uc-fullstack-00001-8b5&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22iris-uc-fullstack%22%0Aresource.labels.revision_name%3D%22iris-uc-fullstack-00001-8b5%22 
+For more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start
