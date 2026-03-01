@@ -1,0 +1,21 @@
+steps:
+  # Build the Docker image using Dockerfile.prod
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.prod'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-uc-ui:latest'
+      - '.'
+
+  # Push the image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-uc-ui:latest'
+
+images:
+  - 'us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-uc-ui:latest'
+
+timeout: 900s

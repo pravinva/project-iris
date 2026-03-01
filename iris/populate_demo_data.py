@@ -9,8 +9,8 @@ import json
 import sys
 from datetime import datetime
 
-# Configuration - GKE deployed server
-UC_SERVER = "http://34.44.233.92:8080"
+# Configuration - Cloud Run deployed server
+UC_SERVER = "https://iris-uc-server-83839625123.us-central1.run.app"
 API_BASE = f"{UC_SERVER}/api/2.1/unity-catalog"
 CATALOG = "iris_ot_assets"
 SCHEMA = "assets"
@@ -18,7 +18,8 @@ SCHEMA = "assets"
 def test_connection():
     """Test connection to UC server"""
     try:
-        response = requests.get(f"{API_BASE}/catalogs", timeout=10)
+        print(f"Connecting to {UC_SERVER} (may take 30-60s for cold start)...")
+        response = requests.get(f"{API_BASE}/catalogs", timeout=120)
         print(f"✅ Connected to Unity Catalog server at {UC_SERVER}")
         catalogs = response.json().get('catalogs', [])
         print(f"Available catalogs: {[c['name'] for c in catalogs]}")
@@ -159,13 +160,13 @@ def main():
             },
             {
                 "name": "rated_speed",
-                "data_type": "INT",
+                "data_type": "INTEGER",
                 "is_required": True,
                 "comment": "Rated speed in RPM"
             },
             {
                 "name": "voltage",
-                "data_type": "INT",
+                "data_type": "INTEGER",
                 "is_required": False,
                 "comment": "Operating voltage"
             },

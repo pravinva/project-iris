@@ -49,6 +49,96 @@ Unity Catalog is proud to be hosted by the LF AI & Data Foundation.
   <img src="./docs/assets/images/lfaidata-project-badge-sandbox-color.png" width="200px" />
 </a>
 
+## Project IRIS - OT Asset Management Extensions
+
+This fork extends Unity Catalog with **Industrial OT (Operational Technology) Asset Management** capabilities, enabling unified governance of both data and physical industrial assets.
+
+### Key Features
+
+- **OT Asset Types**: Define templates for industrial equipment (motors, pumps, sensors, etc.) with typed properties
+- **Asset Hierarchy**: Model ISA-95 compliant asset structures (Enterprise → Site → Area → Line → Equipment)
+- **React UI**: Browse and manage assets through an intuitive web interface
+- **REST API**: Full CRUD operations for asset types and asset instances
+- **Demo Data**: Pre-configured examples for manufacturing and mining operations
+
+### Live Demo (Google Cloud Run)
+
+Access the deployed application:
+- **UI**: https://iris-uc-ui-83839625123.us-central1.run.app
+- **Backend API**: https://iris-uc-server-83839625123.us-central1.run.app
+
+### Quick Start with Demo Data
+
+Populate the catalog with industrial asset examples:
+
+```bash
+python3 populate_demo_data.py
+```
+
+This creates:
+- **Catalog**: `iris_ot_assets`
+- **Schema**: `assets`
+- **Asset Types**: IndustrialMotor, CentrifugalPump, IndustrialSensor
+- **Asset Hierarchy**: Manufacturing plant → Pump station → Pumps → Motor & Sensors (7 assets)
+
+View in UI:
+1. Navigate to https://iris-uc-ui-83839625123.us-central1.run.app
+2. Select `iris_ot_assets` catalog
+3. Browse the `assets` schema
+4. Click on the "OT Assets" tab to see the asset hierarchy
+
+### Deployment
+
+**Build & Deploy to Google Cloud Run:**
+
+```bash
+# Build UI
+cd ui
+gcloud builds submit --config=cloudbuild.yaml --project=gcp-sandbox-field-eng
+
+# Build backend (with no-cache for fresh build)
+cd ..
+gcloud builds submit --config=cloudbuild-nocache.yaml --project=gcp-sandbox-field-eng
+
+# Deploy services
+gcloud run deploy iris-uc-ui \
+  --image=us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-uc-ui:latest \
+  --platform=managed --region=us-central1 --port=8080 --memory=2Gi \
+  --allow-unauthenticated --project=gcp-sandbox-field-eng
+
+gcloud run deploy iris-uc-server \
+  --image=us-central1-docker.pkg.dev/gcp-sandbox-field-eng/iris-artifacts/iris-uc-server:latest \
+  --platform=managed --region=us-central1 --port=8080 --memory=4Gi \
+  --allow-unauthenticated --project=gcp-sandbox-field-eng
+```
+
+**Alternative: Docker Compose (Local)**
+
+```bash
+docker-compose up
+```
+
+### API Examples
+
+**List Asset Types:**
+```bash
+curl https://iris-uc-server-83839625123.us-central1.run.app/api/2.1/unity-catalog/asset-types?catalog_name=iris_ot_assets&schema_name=assets
+```
+
+**List Assets:**
+```bash
+curl 'https://iris-uc-server-83839625123.us-central1.run.app/api/2.1/unity-catalog/assets?catalog_name=iris_ot_assets&schema_name=assets'
+```
+
+**Get Asset Details:**
+```bash
+curl https://iris-uc-server-83839625123.us-central1.run.app/api/2.1/unity-catalog/assets/iris_ot_assets.assets.Pump_CW_001
+```
+
+See [notebooks/](./notebooks/) for complete Python examples and migration tools (PI AF → Unity Catalog).
+
+---
+
 ## Quickstart - Hello UC!
 
 Let's take Unity Catalog for spin. In this guide, we are going to do the following:

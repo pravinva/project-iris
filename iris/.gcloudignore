@@ -1,0 +1,24 @@
+# Cloud Build ignore file
+# Exclude target directories (compiled artifacts)
+**/target/**
+target/
+
+# Exclude node_modules
+**/node_modules/**
+
+# Exclude logs and databases
+**/logs/**
+etc/db/*.db
+etc/db/*.mv.db
+
+# Exclude IDE files
+.idea/
+*.iml
+.vscode/
+
+# Exclude git files
+.git/
+.gitignore
+
+# IMPORTANT: DO NOT exclude build/ directory - it contains sbt launch scripts
+# IMPORTANT: DO NOT exclude project/ directory - it contains build configuration
